@@ -44,3 +44,26 @@ services:
     ports:
       - 9100:9100
 ```
+
+## config file prometheus.yml
+
+```yml
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["prometheus:9090", "prometheus-node-exporter:9100"]
+```
