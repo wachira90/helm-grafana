@@ -1,0 +1,81 @@
+---
+# Source: prometheus/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: app-prometheus
+  labels:
+    helm.sh/chart: prometheus-0.1.0
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/instance: app
+    app.kubernetes.io/version: "v2.43.0"
+    app.kubernetes.io/managed-by: Helm
+---
+# Source: prometheus/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-prometheus
+  labels:
+    helm.sh/chart: prometheus-0.1.0
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/instance: app
+    app.kubernetes.io/version: "v2.43.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9090
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/instance: app
+---
+# Source: prometheus/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-prometheus
+  labels:
+    helm.sh/chart: prometheus-0.1.0
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/instance: app
+    app.kubernetes.io/version: "v2.43.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus
+      app.kubernetes.io/instance: app
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: prometheus
+        app.kubernetes.io/instance: app
+    spec:
+      serviceAccountName: app-prometheus
+      securityContext:
+        {}
+      containers:
+        - name: prometheus
+          securityContext:
+            {}
+          image: "docker.io/prom/prometheus:v2.43.0"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 9090
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {}

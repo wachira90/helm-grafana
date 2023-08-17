@@ -1,0 +1,81 @@
+---
+# Source: node-exporter/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: app-node-exporter
+  labels:
+    helm.sh/chart: node-exporter-0.1.0
+    app.kubernetes.io/name: node-exporter
+    app.kubernetes.io/instance: app
+    app.kubernetes.io/version: "v1.5.0"
+    app.kubernetes.io/managed-by: Helm
+---
+# Source: node-exporter/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-node-exporter
+  labels:
+    helm.sh/chart: node-exporter-0.1.0
+    app.kubernetes.io/name: node-exporter
+    app.kubernetes.io/instance: app
+    app.kubernetes.io/version: "v1.5.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9100
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: node-exporter
+    app.kubernetes.io/instance: app
+---
+# Source: node-exporter/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-node-exporter
+  labels:
+    helm.sh/chart: node-exporter-0.1.0
+    app.kubernetes.io/name: node-exporter
+    app.kubernetes.io/instance: app
+    app.kubernetes.io/version: "v1.5.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: node-exporter
+      app.kubernetes.io/instance: app
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: node-exporter
+        app.kubernetes.io/instance: app
+    spec:
+      serviceAccountName: app-node-exporter
+      securityContext:
+        {}
+      containers:
+        - name: node-exporter
+          securityContext:
+            {}
+          image: "docker.io/prom/node-exporter:v1.5.0"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 9100
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {}
